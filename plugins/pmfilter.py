@@ -3429,21 +3429,18 @@ async def auto_filter(client, msg, spoll=False):
     # reqstr = await client.get_users(reqstr1)
     
     if not spoll:
-    message = msg
-    if message.text and message.text.startswith("/"):
-        return  # ignore commands
-    if message.text and re.findall(r"((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
-        return
-    if message.text and len(message.text) < 100:
-        search = message.text
-        m = await message.reply_text(f"🔎")
-        search = search.lower()
-        find = search.split("ᴡᴀɪᴛ ʙʀᴏ..")
-        search = ""
-        removes = ["in", "upload", "series", "full", "horror", "thriller", "mystery", "print", "file"]
-        for x in find:
-            # your remaining logic here
-
+        message = msg
+        if message.text.startswith("/"): return  # ignore commands
+        if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
+            return
+        if len(message.text) < 100:
+            search = message.text
+            m=await message.reply_text(f"🔎")
+            search = search.lower()
+            find = search.split("ᴡᴀɪᴛ ʙʀᴏ..")
+            search = ""
+            removes = ["in","upload", "series", "full", "horror", "thriller", "mystery", "print", "file"]
+            for x in find:
                 # if x == "in" or x == "upload" or x == "series" or x == "full" or x == "horror" or x == "thriller" or x == "mystery" or x == "print" or x == "subtitle" or x == "subtitles":
                 #     continue
                 if x in removes:
