@@ -77,8 +77,6 @@ async def start(client, message):
                     InlineKeyboardButton(text="About", callback_data="about"),
                     InlineKeyboardButton(text="Shortlink", callback_data="shortlink_info"),
                 ],[
-                    InlineKeyboardButton(text="Main", callback_data="main"),
-                ],[
                     InlineKeyboardButton('ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ', url=f'http://t.me/{temp.U_NAME}?startgroup=true')
                 ],[
                     InlineKeyboardButton('• ᴄᴏᴍᴍᴀɴᴅꜱ •', callback_data='main'),
@@ -158,8 +156,6 @@ async def start(client, message):
                 ],[
                     InlineKeyboardButton(text="About", callback_data="about"),
                     InlineKeyboardButton(text="Shortlink", callback_data="shortlink_info"),
-                ],[
-                    InlineKeyboardButton(text="Main", callback_data="main"),
                 ],[
                     InlineKeyboardButton('ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ', url=f'http://t.me/{temp.U_NAME}?startgroup=true')
                 ],[
@@ -676,7 +672,7 @@ async def channel_info(bot, message):
 async def log_file(bot, message):
     """Send log file"""
     try:
-        await message.reply_document('MovieVerse Bot.LOG')
+        await message.reply_document('MovieVerse.LOG')
     except Exception as e:
         await message.reply(str(e))
 

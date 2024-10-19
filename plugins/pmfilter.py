@@ -1594,8 +1594,6 @@ async def cb_handler(client: Client, query: CallbackQuery):
                     InlineKeyboardButton(text="About", callback_data="about"),
                     InlineKeyboardButton(text="Shortlink", callback_data="shortlink_info"),
                 ],[
-                    InlineKeyboardButton(text="Main", callback_data="main"),
-                ],[
                     InlineKeyboardButton('ᴀᴅᴅ ᴍᴇ ᴛᴏ ʏᴏᴜʀ ɢʀᴏᴜᴘ', url=f'http://t.me/{temp.U_NAME}?startgroup=true')
                 ],[
                     InlineKeyboardButton('• ᴄᴏᴍᴍᴀɴᴅꜱ •', callback_data='main'),
