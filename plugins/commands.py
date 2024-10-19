@@ -1000,7 +1000,7 @@ async def requests(bot, message):
                 ]]
                 reported_post = await bot.send_message(
                     chat_id=REQST_CHANNEL,
-                    text=f"<b>Request: <u>{content}</u>\n\nReported by: {mention}\nReporter ID: {reporter}</b>",
+                    text=f"<b>Request:</b> `{content}`\n\n<b>Reported by:</b> `{mention}`\n<b>Reporter ID:</b> `{reporter}`",
                     reply_markup=InlineKeyboardMarkup(btn)
                 )
                 await message.reply_text("Your request has been successfully sent.")
@@ -1022,7 +1022,7 @@ async def requests(bot, message):
                 ]]
                 await bot.send_message(
                     chat_id=REQST_CHANNEL,
-                    text=f"<b>Request: <u>{content}</u>\n\nReported by: {mention}\nReporter ID: {reporter}</b>",
+                    text=f"<b>Request:</b> `{content}`\n\n<b>Reported by:</b> `{mention}`\n<b>Reporter ID:</b> `{reporter}`",
                     reply_markup=InlineKeyboardMarkup(btn)
                 )
                 await message.reply_text("Your request has been successfully sent.")

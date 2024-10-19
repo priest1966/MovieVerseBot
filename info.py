@@ -28,7 +28,7 @@ SESSION = environ.get('SESSION', 'MovieVerse')
 API_ID = int(environ.get('API_ID', '900652'))
 API_HASH = environ.get('API_HASH', 'a4183efcd370bf03011df1ba8772b1c9')
 OWNER_ID = environ.get('OWNER_ID', '330029937')
-BOT_TOKEN = environ.get('BOT_TOKEN', "7297090199:AAFL0okTc2pzKCOiZ3H7zBwH__Dc2f8EQro")
+BOT_TOKEN = environ.get('BOT_TOKEN', "")
 
 # Bot settings
 CACHE_TIME = int(environ.get('CACHE_TIME', 300))
@@ -36,17 +36,16 @@ USE_CAPTION_FILTER = bool(environ.get('USE_CAPTION_FILTER', True))
 
 PICS = (environ.get('PICS', 'https://graph.org/file/bdf74912ff48bcedbe9cc.jpg')).split() #SAMPLE PIC
 NOR_IMG = environ.get("NOR_IMG", "https://graph.org/file/bdf74912ff48bcedbe9cc.jpg")
-MELCOW_VID = environ.get("MELCOW_VID", "https://graph.org/file/72dff2b65352ba85d0a34.mp4")
-SPELL_IMG = environ.get("SPELL_IMG", "https://graph.org/file/549fd9f3272214acade82.jpg")
+MELCOW_VID = environ.get("MELCOW_VID", "https://graph.org/file/ea40f1b53dd3b6315c130.mp4") #https://graph.org/file/72dff2b65352ba85d0a34.mp4 
+SPELL_IMG = environ.get("SPELL_IMG", "https://telegra.ph/file/5e2d4418525832bc9a1b9.jpg")
 SUBSCRIPTION = (environ.get('SUBSCRIPTION', 'https://graph.org/file/e2d9b5e15e15daafb64e8.jpg'))
 
 CODE = (environ.get('CODE', 'https://i.ibb.co/Ky1KwGf/photo-2024-06-02-08-44-49.jpg'))
 REFER_PICS = (environ.get("REFER_PICS", "https://graph.org/file/1c1a3cb814cd719ae3bd3.jpg https://graph.org/file/1a2e64aee3d4d10edd930.jpg")).split()
 
 #stream link shortner
-STREAM_SITE = (environ.get('STREAM_SITE', 'shareus.io'))
-
-STREAM_API = (environ.get('STREAM_API', ''))
+STREAM_SITE = (environ.get('STREAM_SITE', 'omegalinks.in'))
+STREAM_API = (environ.get('STREAM_API', '9b3b87cc699f7874fa7193531decf02364770e73'))
 STREAMHTO = (environ.get('STREAMHTO', 'https://t.me/howtoverify_97/3'))
 
 # Command
@@ -63,17 +62,17 @@ auth_users = [int(user) if id_pattern.search(user) else user for user in environ
 AUTH_USERS = (auth_users + ADMINS) if auth_users else []
 PREMIUM_USER = [int(user) if id_pattern.search(user) else user for user in environ.get('PREMIUM_USER', '330029937').split()]
 auth_channel = environ.get('AUTH_CHANNEL', '-1002050647275') #Channel / Group Id for force sub ( make sure bot is admin )
-auth_grp = environ.get('AUTH_GROUP', '')
+auth_grp = environ.get('AUTH_GROUP', '-1002055042397')
 AUTH_CHANNEL = int(auth_channel) if auth_channel and id_pattern.search(auth_channel) else None
 AUTH_GROUPS = [int(ch) for ch in auth_grp.split()] if auth_grp else None
 support_chat_id = environ.get('SUPPORT_CHAT_ID', '-1002050647275') # support group id ( make sure bot is admin )
-reqst_channel = environ.get('REQST_CHANNEL_ID', '-1002125544878') # request channel id ( make sure bot is admin )
+reqst_channel = environ.get('REQST_CHANNEL_ID', '-1002347837870') # request channel id ( make sure bot is admin )
 REQST_CHANNEL = int(reqst_channel) if reqst_channel and id_pattern.search(reqst_channel) else None
 SUPPORT_CHAT_ID = int(support_chat_id) if support_chat_id and id_pattern.search(support_chat_id) else None
 NO_RESULTS_MSG = bool(environ.get("NO_RESULTS_MSG", False)) # True if you want no results messages in Log Channel
 
 # MongoDB information
-DATABASE_URI = environ.get('DATABASE_URI', "mongodb+srv://icecube:lovely8249@cluster0.mn7t6la.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+DATABASE_URI = environ.get('DATABASE_URI', "")
 DATABASE_NAME = environ.get('DATABASE_NAME', "Cluster0")
 COLLECTION_NAME = environ.get('COLLECTION_NAME', 'Telegram_DB')
 DOWNLOAD_LOCATION = environ.get("DOWNLOAD_LOCATION", "./DOWNLOADS/AudioBoT/")
@@ -82,8 +81,8 @@ DOWNLOAD_LOCATION = environ.get("DOWNLOAD_LOCATION", "./DOWNLOADS/AudioBoT/")
 AI = is_enabled((environ.get("AI","True")), True)
 OPENAI_API = environ.get("OPENAI_API", " ")
 DEEP_API = environ.get("DEEP_API", "3ac9b077-654f-45c6-a1f0-a04a5ef6b69e")
-GOOGLE_API_KEY = environ.get("GOOGLE_API_KEY", "AIzaSyD214hhYJ-xf8rfaWX044_g1VEBQ0ua55Q")
-AI_LOGS = int(environ.get("AI_LOGS", "-1001868871195")) #GIVE YOUR NEW LOG CHANNEL ID TO STORE MESSAGES THAT THEY SEARCH IN BOT PM.... [ i have added this to keep an eye on the users message, to avoid misuse of Bot ]
+GOOGLE_API_KEY = environ.get("GOOGLE_API_KEY", "AIzaSyCFt51nzan1x35YwUW8q6pnRQ2GaSra5c8")
+AI_LOGS = int(environ.get("AI_LOGS", "-1001953637842")) #GIVE YOUR NEW LOG CHANNEL ID TO STORE MESSAGES THAT THEY SEARCH IN BOT PM.... [ i have added this to keep an eye on the users message, to avoid misuse of Bot ]
 
 #Auto approve 
 CHAT_ID = [int(app_chat_id) if id_pattern.search(app_chat_id) else app_chat_id for app_chat_id in environ.get('CHAT_ID', '').split()]
@@ -94,8 +93,8 @@ APPROVED = environ.get("APPROVED_WELCOME", "on").lower()
 REFERAL_COUNT = int(environ.get('REFERAL_COUNT', '20')) # number of referal count
 REFERAL_PREMEIUM_TIME = environ.get('REFERAL_PREMEIUM_TIME', '1 week')
 OWNER_USERNAME = environ.get('OWNER_USERNAME', 'icecube9680') # owner username without @
-LOG_CHANNEL = int(environ.get('LOG_CHANNEL', '-1002125544878')) #Log channel id ( make sure bot is admin )
-DUMP_CHNL = int(environ.get('DUMP_CHNL', '-1001953637842'))
+LOG_CHANNEL = int(environ.get('LOG_CHANNEL', '-1001953637842')) #Log channel id ( make sure bot is admin )
+DUMP_CHNL = int(environ.get('DUMP_CHNL', '-1002349586238'))
 
 # Verify
 VERIFY = bool(environ.get('VERIFY', False)) # Verification On ( True ) / Off ( False )
@@ -108,7 +107,7 @@ IS_SHORTLINK = bool(environ.get('IS_SHORTLINK', True))
 DELETE_CHANNELS = [int(dch) if id_pattern.search(dch) else dch for dch in environ.get('DELETE_CHANNELS', '0').split()]
 MAX_B_TN = environ.get("MAX_B_TN", "5")
 MAX_BTN = is_enabled((environ.get('MAX_BTN', "True")), True)
-PORT = environ.get("PORT", "8031")
+PORT = environ.get("PORT", "8081")
 BOT_USERNAME = environ.get("BOT_USERNAME", "movieverse_2_bot")
 BOT_NAME = environ.get("BOT_NAME", "MovieVerse")
 BOT_ID = environ.get("BOT_ID", "6581063201")
@@ -152,28 +151,23 @@ if 'DYNO' in environ:
     APP_NAME = environ.get('APP_NAME')
 else:
     ON_HEROKU = False
-BIND_ADRESS = str(getenv('WEB_SERVER_BIND_ADDRESS', '192.168.1.76'))
+BIND_ADRESS = str(getenv('WEB_SERVER_BIND_ADDRESS', '0.0.0.0'))
 FQDN = str(getenv('FQDN', BIND_ADRESS)) if not ON_HEROKU or getenv('FQDN') else APP_NAME+'.herokuapp.com'
-
 URL = "https://{}/".format(FQDN) if ON_HEROKU or NO_PORT else \
-    "https://{}/".format(FQDN)
-
+    "https://{}/".format(FQDN, PORT)
 SLEEP_THRESHOLD = int(environ.get('SLEEP_THRESHOLD', '60'))
 WORKERS = int(environ.get('WORKERS', '4'))
-
 SESSION_NAME = str(environ.get('SESSION_NAME', 'movieverse'))
 MULTI_CLIENT = False
-name = str(environ.get('name', 'movieverse'))
+name = str(environ.get('name', 'LazyPrincess'))
 PING_INTERVAL = int(environ.get("PING_INTERVAL", "1200"))  # 20 minutes
-
 if 'DYNO' in environ:
     ON_HEROKU = True
     APP_NAME = str(getenv('APP_NAME'))
+
 else:
     ON_HEROKU = False
-
-HAS_SSL = bool(getenv('HAS_SSL', True))
-
+HAS_SSL=bool(getenv('HAS_SSL',True))
 if HAS_SSL:
     URL = "https://{}/".format(FQDN)
 else:
@@ -181,7 +175,7 @@ else:
 
 # add premium logs channel id
 
-PREMIUM_LOGS = int(environ.get('PREMIUM_LOGS', '-1001953637842'))
+PREMIUM_LOGS = int(environ.get('PREMIUM_LOGS', '-1002468663185'))
 
 
 LOG_STR = "Current Cusomized Configurations are:-\n"
