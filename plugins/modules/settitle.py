@@ -40,7 +40,7 @@ async def who_is(bot, message):
 
 from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from script import RULE_TXT  # Make sure to import RULE_TXT from your script
+from Script import RULE_TXT  # Make sure to import RULE_TXT from your script
 
 START_MESSAGE = "Welcome {}, here are the rules for the group {}."
 PROTECT_CONTENT = True  # Set this flag based on your needs
