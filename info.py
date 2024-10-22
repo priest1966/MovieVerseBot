@@ -28,7 +28,7 @@ SESSION = environ.get('SESSION', 'MovieVerse')
 API_ID = int(environ.get('API_ID', '900652'))
 API_HASH = environ.get('API_HASH', 'a4183efcd370bf03011df1ba8772b1c9')
 OWNER_ID = environ.get('OWNER_ID', '330029937')
-BOT_TOKEN = environ.get('BOT_TOKEN', "6450407697:AAHd2DvsYRlNUzf1n-6VENrtuzx5_XyMUxQ")
+BOT_TOKEN = environ.get('BOT_TOKEN', "6581063201:AAGqa68KZtt9vxixOWXLzl8HtpNtor6W_i8")
 
 # Bot settings
 CACHE_TIME = int(environ.get('CACHE_TIME', 300))
@@ -72,7 +72,7 @@ SUPPORT_CHAT_ID = int(support_chat_id) if support_chat_id and id_pattern.search(
 NO_RESULTS_MSG = bool(environ.get("NO_RESULTS_MSG", True)) # True if you want no results messages in Log Channel
 
 # MongoDB information
-DATABASE_URI = environ.get('DATABASE_URI', "mongodb+srv://icecube:lovely8249@cluster0.mn7t6la.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+DATABASE_URI = environ.get('DATABASE_URI', "mongodb+srv://ice:lovely8249@cluster0.y9czlat.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 DATABASE_NAME = environ.get('DATABASE_NAME', "Cluster0")
 COLLECTION_NAME = environ.get('COLLECTION_NAME', 'Telegram_DB')
 DOWNLOAD_LOCATION = environ.get("DOWNLOAD_LOCATION", "./DOWNLOADS/AudioBoT/")
