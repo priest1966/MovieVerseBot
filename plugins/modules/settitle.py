@@ -107,7 +107,6 @@ RULE_TXT = """Group Rules
 
 9. No spamming, self-promotion, or advertising is allowed in the group.
 
-How you search your movie:- https://telegra.ph/How-you-Search-your-favourite-movie-or-Series-12-22
 
 
 Note : We not fulfill movie request in Assamese, Bengali, Bodo, Dogri, Gujarati, Kannada, Kashmiri, Konkani, Maithili, Malayalam, Manipuri, Marathi, Nepali, Odia, Punjabi, Sanskrit, Santali, Sindhi, Tamil, Telugu, and Urdu language. So don't request.
