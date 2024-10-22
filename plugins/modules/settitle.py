@@ -38,16 +38,29 @@ async def who_is(bot, message):
 
 
 
-# @Client.on_message(filters.command("rules") & filters.group) 
-# async def r_message(client, message):
-#    protect = "/pbatch" if PROTECT_CONTENT else "batch"
-#     mention = message.from_user.mention
-#     buttons = [[
-#         InlineKeyboardButton('Join Group', url=f'https://t.me/movieverse_discussion_2')
-#     ]]
-#    reply_markup = InlineKeyboardMarkup(buttons)
-#     await message.reply_text(START_MESSAGE.format(message.from_user.mention, message.chat.title),
-#     protect_content=True,
-#     reply_markup=reply_markup, 
-#     parse_mode=enums.ParseMode.HTML
-#     )
+from pyrogram import Client, filters, enums
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
+# Define your START_MESSAGE and PROTECT_CONTENT somewhere in your code
+START_MESSAGE = "Welcome {}, here are the rules for the group {}."
+PROTECT_CONTENT = True  # Set this flag based on your needs
+
+@Client.on_message(filters.command("rules") & filters.group)
+async def r_message(client, message):
+    # Set the protect value based on the PROTECT_CONTENT flag
+    protect = "/pbatch" if PROTECT_CONTENT else "batch"
+    mention = message.from_user.mention
+
+    # Define the button and reply markup
+    buttons = [[
+        InlineKeyboardButton('Join Group', url='https://t.me/movieverse_discussion_2')
+    ]]
+    reply_markup = InlineKeyboardMarkup(buttons)
+
+    # Send the message with the rules and join button
+    await message.reply_text(
+        START_MESSAGE.format(mention, message.chat.title),
+        protect_content=True,  # Protects the content of the message if required
+        reply_markup=reply_markup,
+        parse_mode=enums.ParseMode.HTML
+    )
