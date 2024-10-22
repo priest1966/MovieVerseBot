@@ -176,6 +176,10 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
 
                 current += 1
                 if current % 200 == 0:
+                    # Adding 10-second delay after every 100 files
+                    await asyncio.sleep(10)
+
+                if current % 200 == 0:
                     await asyncio.sleep(20)
                 if current % 20 == 0:
                     can = [[InlineKeyboardButton('Cancel', callback_data='index_cancel')]]
@@ -203,14 +207,19 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
                 media.file_type = message.media.value
                 media.caption = message.caption if message.caption else ''
 
-                aynav, vnay = await save_file(media)
+                try:
+                    aynav, vnay = await save_file(media)
 
-                if aynav:
-                    total_files += 1
-                elif vnay == 0:
-                    duplicate += 1
-                elif vnay == 2:
-                    errors += 1
+                    if aynav:
+                        total_files += 1
+                    elif vnay == 0:
+                        duplicate += 1
+                    elif vnay == 2:
+                        errors += 1
+
+                except FloodWait as e:
+                    logger.warning(f"FloodWait: Sleeping for {e.x} seconds.")
+                    await asyncio.sleep(e.x)
 
         except Exception as e:
             logger.error(f"Error in index_files_to_db: {e}")
