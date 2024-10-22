@@ -40,27 +40,35 @@ async def who_is(bot, message):
 
 from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from script import RULE_TXT  # Make sure to import RULE_TXT from your script
 
-# Define your START_MESSAGE and PROTECT_CONTENT somewhere in your code
 START_MESSAGE = "Welcome {}, here are the rules for the group {}."
 PROTECT_CONTENT = True  # Set this flag based on your needs
 
 @Client.on_message(filters.command("rules") & filters.group)
 async def r_message(client, message):
-    # Set the protect value based on the PROTECT_CONTENT flag
     protect = "/pbatch" if PROTECT_CONTENT else "batch"
     mention = message.from_user.mention
 
-    # Define the button and reply markup
-    buttons = [[
-        InlineKeyboardButton('Join Group', url='https://t.me/movieverse_discussion_2')
-    ]]
+    # Define buttons
+    buttons = [
+        [
+            InlineKeyboardButton('Rules', callback_data='show_rules')
+        ]
+    ]
     reply_markup = InlineKeyboardMarkup(buttons)
 
-    # Send the message with the rules and join button
-    await message.reply_text(
-        START_MESSAGE.format(mention, message.chat.title),
-        protect_content=True,  # Protects the content of the message if required
-        reply_markup=reply_markup,
-        parse_mode=enums.ParseMode.HTML
-    )
+    try:
+        await message.reply_text(
+            START_MESSAGE.format(mention, message.chat.title),
+            protect_content=PROTECT_CONTENT,
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+        )
+    except Exception as e:
+        print(f"Error sending rules message: {e}")
+
+@Client.on_callback_query(filters.regex('show_rules'))
+async def show_rules(client, callback_query):
+    await callback_query.answer()  # Acknowledge the callback
+    await callback_query.message.reply_text(RULE_TXT, parse_mode=enums.ParseMode.HTML)
