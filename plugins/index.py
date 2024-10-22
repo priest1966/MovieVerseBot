@@ -22,8 +22,7 @@ async def index_files(bot, query):
         if query.data.startswith('index_cancel'):
             temp.CANCEL = True
             return await query.answer("Cancelling Indexing")
-        
-        # Extract information from the callback data
+
         _, action, chat, lst_msg_id, from_user = query.data.split("#")
 
         if action == 'reject':
@@ -41,28 +40,25 @@ async def index_files(bot, query):
         msg = query.message
         await query.answer('Processing...', show_alert=True)
 
-        # Notify non-admin users that their request has been accepted
         if int(from_user) not in ADMINS:
             await bot.send_message(
                 int(from_user),
                 f'Your submission for indexing {chat} has been accepted by our moderators and will be added soon.',
                 reply_to_message_id=int(lst_msg_id)
             )
+
         await msg.edit(
             "Starting Indexing",
-            reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton('Cancel', callback_data='index_cancel')]]
-            )
+            reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('Cancel', callback_data='index_cancel')]])
         )
 
-        # Try converting chat ID to integer; handle both username and integer chat ID formats
         try:
             chat = int(chat)
         except ValueError:
-            pass  # Use chat as string if it can't be converted to int
+            pass  # Keep chat as string if conversion fails
 
-        # Start the indexing process
         await index_files_to_db(int(lst_msg_id), chat, msg, bot)
+
     except Exception as e:
         logger.error(f"Error in index_files: {e}")
         await query.message.reply(f"An error occurred: {e}")
@@ -104,10 +100,9 @@ async def send_for_index(bot, message):
         except Exception:
             return await message.reply('Make sure I am an admin in the channel if the channel is private.')
 
-        if k.empty:
+        if not k or k.empty:
             return await message.reply('This may be a group, and I am not an admin of the group.')
 
-        # Admins can approve indexing immediately
         if message.from_user.id in ADMINS:
             buttons = [
                 [InlineKeyboardButton('Yes', callback_data=f'index#accept#{chat_id}#{last_msg_id}#{message.from_user.id}')],
@@ -118,7 +113,6 @@ async def send_for_index(bot, message):
                 f'Do you want to index this channel/group?\n\nChat ID/Username: <code>{chat_id}</code>\nLast Message ID: <code>{last_msg_id}</code>',
                 reply_markup=reply_markup)
 
-        # Create invite link for non-admins
         if isinstance(chat_id, int):
             try:
                 link = (await bot.create_chat_invite_link(chat_id)).invite_link
@@ -127,7 +121,6 @@ async def send_for_index(bot, message):
         else:
             link = f"@{message.forward_from_chat.username}"
 
-        # Non-admins need approval
         buttons = [
             [InlineKeyboardButton('Accept Index', callback_data=f'index#accept#{chat_id}#{last_msg_id}#{message.from_user.id}')],
             [InlineKeyboardButton('Reject Index', callback_data=f'index#reject#{chat_id}#{message.id}#{message.from_user.id}')],
@@ -141,6 +134,7 @@ async def send_for_index(bot, message):
         )
 
         await message.reply('Thank you for the contribution. Wait for my moderators to verify the files.')
+
     except Exception as e:
         logger.error(f"Error in send_for_index: {e}")
         await message.reply(f"An error occurred: {e}")
@@ -207,7 +201,7 @@ async def index_files_to_db(lst_msg_id, chat, msg, bot):
                     continue
 
                 media.file_type = message.media.value
-                media.caption = message.caption
+                media.caption = message.caption if message.caption else ''
 
                 aynav, vnay = await save_file(media)
 
