@@ -78,7 +78,7 @@ COLLECTION_NAME = environ.get('COLLECTION_NAME', 'Telegram_DB')
 DOWNLOAD_LOCATION = environ.get("DOWNLOAD_LOCATION", "./DOWNLOADS/AudioBoT/")
 
 #chatgptAI
-AI = is_enabled((environ.get("AI","True")), True)
+AI = is_enabled((environ.get("AI","False")), True)
 OPENAI_API = environ.get("OPENAI_API", " ")
 DEEP_API = environ.get("DEEP_API", "3ac9b077-654f-45c6-a1f0-a04a5ef6b69e")
 GOOGLE_API_KEY = environ.get("GOOGLE_API_KEY", "AIzaSyCFt51nzan1x35YwUW8q6pnRQ2GaSra5c8")

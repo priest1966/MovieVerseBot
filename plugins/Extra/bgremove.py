@@ -26,7 +26,7 @@ async def RemoveBG(input_file_name):
             if "image" not in contentType:
                 return False, (await y.json())
 
-            name = check_filename("lucy.png")
+            name = check_filename("movieverse.png")
             file = await aiofiles.open(name, "wb")
             await file.write(await y.read())
             await file.close()
