@@ -1,24 +1,32 @@
 import logging
-from struct import pack
 import re
 import base64
+from struct import pack
 from pyrogram.file_id import FileId
 from pymongo.errors import DuplicateKeyError
 from umongo import Instance, Document, fields
 from motor.motor_asyncio import AsyncIOMotorClient
 from marshmallow.exceptions import ValidationError
-from info import DATABASE_URI, DATABASE_NAME, COLLECTION_NAME, USE_CAPTION_FILTER, MAX_B_TN
+from info import (
+    DATABASE_URI,
+    DATABASE_NAME,
+    COLLECTION_NAME,
+    USE_CAPTION_FILTER,
+    MAX_B_TN,
+)
 from utils import get_settings, save_group_settings
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
+# Initialize the MongoDB client and database instance
 client = AsyncIOMotorClient(DATABASE_URI)
 db = client[DATABASE_NAME]
 instance = Instance.from_db(db)
 
 @instance.register
 class Media(Document):
+    """Media Document Schema"""
     file_id = fields.StrField(attribute='_id')
     file_ref = fields.StrField(allow_none=True)
     file_name = fields.StrField(required=True)
@@ -35,13 +43,12 @@ class Media(Document):
 
 
 async def save_file(media, channel_id=None, message_id=None):
-    """Save file in database"""
-
-    # TODO: Find better way to get same file_id for same media to avoid duplicates
+    """Save media file information to the database."""
     file_id, file_ref = unpack_new_file_id(media.file_id)
-    file_name = re.sub(r"(_|\-|\.|\+)", " ", str(media.file_name))
+    file_name = re.sub(r"[_\-\.\+]", " ", str(media.file_name)).strip()
+
     try:
-        file = Media(
+        media_document = Media(
             file_id=file_id,
             file_ref=file_ref,
             file_name=file_name,
@@ -52,135 +59,116 @@ async def save_file(media, channel_id=None, message_id=None):
             mime_type=media.mime_type,
             caption=media.caption.html if media.caption else None,
         )
-    except ValidationError:
-        logger.exception('Error occurred while saving file in database')
-        return False, 2
-    else:
-        try:
-            await file.commit()
-        except DuplicateKeyError:
-            logger.warning(
-                f'{getattr(media, "file_name", "NO_FILE")} is already saved in database'
-            )
-            return False, 0
-        else:
-            logger.info(f'{getattr(media, "file_name", "NO_FILE")} is saved to database')
-            return True, 1
+        await media_document.commit()
+        logger.info(f'Successfully saved file: {file_name}')
+        return True, 1  # Success
+    except ValidationError as ve:
+        logger.error('Validation error occurred while saving file: %s', ve)
+        return False, 2  # Validation Error
+    except DuplicateKeyError:
+        logger.warning('File already exists: %s', media.file_name)
+        return False, 0  # Duplicate Entry
 
 
-async def get_search_results(chat_id, query, file_type=None, max_results=10, offset=0, filter=False):
-    """For given query return (results, next_offset)"""
-    if chat_id is not None:
-        settings = await get_settings(int(chat_id))
-        try:
-            if settings['max_btn']:
-                max_results = 10
-            else:
-                max_results = int(MAX_B_TN)
-        except KeyError:
-            await save_group_settings(int(chat_id), 'max_btn', False)
-            settings = await get_settings(int(chat_id))
-            if settings['max_btn']:
-                max_results = 10
-            else:
-                max_results = int(MAX_B_TN)
+async def get_search_results(chat_id, query, file_type=None, max_results=10, offset=0):
+    """Return search results based on the query."""
+    settings = await get_settings(int(chat_id)) if chat_id else {}
+    max_results = 10 if settings.get('max_btn') else int(MAX_B_TN)
 
     query = query.strip()
-    if not query:
-        raw_pattern = '.'
-    elif ' ' not in query:
-        raw_pattern = r'(\b|[\.\+\-_])' + query + r'(\b|[\.\+\-_])'
-    else:
-        raw_pattern = query.replace(' ', r'.*[\s\.\+\-_]')
+    raw_pattern = build_search_pattern(query)
+    regex = re.compile(raw_pattern, flags=re.IGNORECASE)
+
+    filter_query = {'file_name': regex}
+    if USE_CAPTION_FILTER:
+        filter_query['$or'] = [{'file_name': regex}, {'caption': regex}]
+    if file_type:
+        filter_query['file_type'] = file_type
 
     try:
-        regex = re.compile(raw_pattern, flags=re.IGNORECASE)
-    except:
-        return []
+        total_results = await Media.count_documents(filter_query)
+        next_offset = min(offset + max_results, total_results)
 
-    if USE_CAPTION_FILTER:
-        filter = {'$or': [{'file_name': regex}, {'caption': regex}]}
-    else:
-        filter = {'file_name': regex}
+        cursor = Media.find(filter_query).sort('$natural', -1).skip(offset).limit(max_results)
+        files = await cursor.to_list(length=max_results)
 
-    if file_type:
-        filter['file_type'] = file_type
-
-    total_results = await Media.count_documents(filter)
-    next_offset = offset + max_results
-
-    if next_offset > total_results:
-        next_offset = ''
-
-    cursor = Media.find(filter)
-    cursor.sort('$natural', -1)
-    cursor.skip(offset).limit(max_results)
-    files = await cursor.to_list(length=max_results)
-
-    return files, next_offset, total_results
+        return files, next_offset if next_offset < total_results else '', total_results
+    except Exception as e:
+        logger.error('Error during search: %s', e)
+        return [], '', 0
 
 
-async def get_bad_files(query, file_type=None, filter=False):
-    """For given query return (results, next_offset)"""
+async def get_bad_files(query, file_type=None):
+    """Retrieve files marked as bad based on a query."""
     query = query.strip()
-    if not query:
-        raw_pattern = '.'
-    elif ' ' not in query:
-        raw_pattern = r'(\b|[\.\+\-_])' + query + r'(\b|[\.\+\-_])'
-    else:
-        raw_pattern = query.replace(' ', r'.*[\s\.\+\-_]')
+    raw_pattern = build_search_pattern(query)
+    regex = re.compile(raw_pattern, flags=re.IGNORECASE)
+
+    filter_query = {'file_name': regex}
+    if USE_CAPTION_FILTER:
+        filter_query['$or'] = [{'file_name': regex}, {'caption': regex}]
+    if file_type:
+        filter_query['file_type'] = file_type
 
     try:
-        regex = re.compile(raw_pattern, flags=re.IGNORECASE)
-    except:
+        total_results = await Media.count_documents(filter_query)
+        cursor = Media.find(filter_query).sort('$natural', -1)
+        files = await cursor.to_list(length=total_results)
+
+        return files, total_results
+    except Exception as e:
+        logger.error('Error fetching bad files: %s', e)
+        return [], 0
+
+
+async def get_file_details(file_id):
+    """Retrieve detailed information about a file."""
+    filter_query = {'file_id': file_id}
+    cursor = Media.find(filter_query)
+
+    try:
+        file_details = await cursor.to_list(length=1)
+        return file_details
+    except Exception as e:
+        logger.error('Error fetching file details: %s', e)
         return []
 
-    if USE_CAPTION_FILTER:
-        filter = {'$or': [{'file_name': regex}, {'caption': regex}]}
+
+def build_search_pattern(query):
+    """Build a regex pattern for searching."""
+    if not query:
+        return r'.'
+    elif ' ' not in query:
+        return r'(\b|[\.\+\-_])' + re.escape(query) + r'(\b|[\.\+\-_])'
     else:
-        filter = {'file_name': regex}
-
-    if file_type:
-        filter['file_type'] = file_type
-
-    total_results = await Media.count_documents(filter)
-    cursor = Media.find(filter)
-    cursor.sort('$natural', -1)
-    files = await cursor.to_list(length=total_results)
-
-    return files, total_results
-
-
-async def get_file_details(query):
-    filter = {'file_id': query}
-    cursor = Media.find(filter)
-    filedetails = await cursor.to_list(length=1)
-    return filedetails
+        return re.escape(query).replace(' ', r'.*[\s\.\+\-_]')
 
 
 def encode_file_id(s: bytes) -> str:
-    r = b""
-    n = 0
+    """Encode a file ID into a URL-safe format."""
+    encoded = bytearray()
+    zero_count = 0
 
-    for i in s + bytes([22]) + bytes([4]):
-        if i == 0:
-            n += 1
+    for byte in s + bytes([22]) + bytes([4]):
+        if byte == 0:
+            zero_count += 1
         else:
-            if n:
-                r += b"\x00" + bytes([n])
-                n = 0
+            if zero_count:
+                encoded.append(0)
+                encoded.append(zero_count)
+                zero_count = 0
+            encoded.append(byte)
 
-            r += bytes([i])
-
-    return base64.urlsafe_b64encode(r).decode().rstrip("=")
+    return base64.urlsafe_b64encode(encoded).decode().rstrip("=")
 
 
 def encode_file_ref(file_ref: bytes) -> str:
+    """Encode a file reference into a URL-safe format."""
     return base64.urlsafe_b64encode(file_ref).decode().rstrip("=")
 
 
 def unpack_new_file_id(new_file_id):
-    """Return file_id, file_ref"""
+    """Unpack the new file ID into file_id and file_ref."""
     decoded = FileId.decode(new_file_id)
     file_id = encode_file_id(
         pack(
