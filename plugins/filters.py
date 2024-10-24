@@ -17,7 +17,8 @@ from info import ADMINS
 async def addfilter(client, message):
     userid = message.from_user.id if message.from_user else None
     if not userid:
-        return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
+        return await message.reply(f"You are an anonymous admin. Use /connect {message.chat.id} in PM")
+    
     chat_type = message.chat.type
     args = message.text.html.split(None, 1)
 
@@ -29,7 +30,7 @@ async def addfilter(client, message):
                 chat = await client.get_chat(grpid)
                 title = chat.title
             except:
-                await message.reply_text("Make sure I'm present in your group!!", quote=True)
+                await message.reply_text("Make sure I'm present in your group!", quote=True)
                 return
         else:
             await message.reply_text("I'm not connected to any groups!", quote=True)
@@ -38,7 +39,6 @@ async def addfilter(client, message):
     elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         grp_id = message.chat.id
         title = message.chat.title
-
     else:
         return
 
@@ -50,70 +50,50 @@ async def addfilter(client, message):
     ):
         return
 
-
     if len(args) < 2:
-        await message.reply_text("Command Incomplete :(", quote=True)
+        await message.reply_text("Command incomplete :(", quote=True)
         return
 
-    extracted = split_quotes(args[1])
-    text = extracted[0].lower()
+    # Initialize response and keywords
+    response = ""
+    keywords = []
 
-    if not message.reply_to_message and len(extracted) < 2:
-        await message.reply_text("Add some content to save your filter!", quote=True)
-        return
+    # Handle parentheses-enclosed keywords
+    if '(' in args[1] and ')' in args[1]:
+        keyword_part, response = args[1].split(')', 1)
+        keywords = keyword_part.replace('(', '').split(',')
+        keywords = [k.strip().lower() for k in keywords]  # Clean up spaces and lower the case
 
-    if (len(extracted) >= 2) and not message.reply_to_message:
-        reply_text, btn, alert = parser(extracted[1], text)
-        fileid = None
-        if not reply_text:
-            await message.reply_text("You cannot have buttons alone, give some text to go with it!", quote=True)
+    # Handle quoted keywords
+    elif '"' in args[1]:
+        split_args = split_quotes(args[1])
+        if len(split_args) >= 2:
+            keywords = [split_args[0].lower()]
+            response = split_args[1].strip()
+        else:
+            await message.reply_text("Please provide both keyword and response.", quote=True)
             return
 
-    elif message.reply_to_message and message.reply_to_message.reply_markup:
-        try:
-            rm = message.reply_to_message.reply_markup
-            btn = rm.inline_keyboard
-            msg = get_file_id(message.reply_to_message)
-            if msg:
-                fileid = msg.file_id
-                reply_text = message.reply_to_message.caption.html
-            else:
-                reply_text = message.reply_to_message.text.html
-                fileid = None
-            alert = None
-        except:
-            reply_text = ""
-            btn = "[]" 
-            fileid = None
-            alert = None
-
-    elif message.reply_to_message and message.reply_to_message.media:
-        try:
-            msg = get_file_id(message.reply_to_message)
-            fileid = msg.file_id if msg else None
-            reply_text, btn, alert = parser(extracted[1], text) if message.reply_to_message.sticker else parser(message.reply_to_message.caption.html, text)
-        except:
-            reply_text = ""
-            btn = "[]"
-            alert = None
-    elif message.reply_to_message and message.reply_to_message.text:
-        try:
-            fileid = None
-            reply_text, btn, alert = parser(message.reply_to_message.text.html, text)
-        except:
-            reply_text = ""
-            btn = "[]"
-            alert = None
-    else:
+    # Validate response
+    if not response.strip():
+        await message.reply_text("Please provide a response for the filter.", quote=True)
         return
 
-    await add_filter(grp_id, text, reply_text, btn, fileid, alert)
+    # Handle the reply and buttons like before
+    reply_text, btn, alert = parser(response.strip(), ', '.join(keywords))
+    fileid = None
+    if not reply_text:
+        await message.reply_text("You cannot have buttons alone, give some text to go with it!", quote=True)
+        return
 
-    await message.reply_text(
-        f"Filter for  `{text}`  added in  **{title}**",
-        quote=True,
-        parse_mode=enums.ParseMode.MARKDOWN
-    )
+    # Add each keyword to the filter
+    for keyword in keywords:
+        await add_filter(grp_id, keyword, reply_text, btn, fileid, alert)
+        await message.reply_text(
+            f"Filter for `{keyword}` added in **{title}**",
+            quote=True,
+            parse_mode=enums.ParseMode.MARKDOWN
+        )
 
 
 @Client.on_message(filters.command(['viewfilters', 'filters']) & filters.incoming)
