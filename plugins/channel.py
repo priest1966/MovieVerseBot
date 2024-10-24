@@ -17,4 +17,9 @@ async def media(bot, message):
 
     media.file_type = file_type
     media.caption = message.caption
-    await save_file(media)
+    # print(message, "==========================")
+    try:
+        await save_file(media, message.chat.id, message.id)
+    except Exception as e:
+        print(e)
+        pass

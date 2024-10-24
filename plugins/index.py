@@ -23,14 +23,14 @@ async def index_files(bot, query):
             temp.CANCEL = True
             return await query.answer("Cancelling Indexing")
 
-        _, action, chat, lst_msg_id, from_user = query.data.split("#")
+        _, action, chat, last_message_id, user_id = query.data.split("#")
 
         if action == 'reject':
             await query.message.delete()
             await bot.send_message(
-                int(from_user),
+                int(user_id),
                 f'Your submission for indexing {chat} has been declined by our moderators.',
-                reply_to_message_id=int(lst_msg_id)
+                reply_to_message_id=int(last_message_id)
             )
             return
 
@@ -40,11 +40,11 @@ async def index_files(bot, query):
         msg = query.message
         await query.answer('Processing...', show_alert=True)
 
-        if int(from_user) not in ADMINS:
+        if int(user_id) not in ADMINS:
             await bot.send_message(
-                int(from_user),
+                int(user_id),
                 f'Your submission for indexing {chat} has been accepted by our moderators and will be added soon.',
-                reply_to_message_id=int(lst_msg_id)
+                reply_to_message_id=int(last_message_id)
             )
 
         await msg.edit(
@@ -53,15 +53,23 @@ async def index_files(bot, query):
         )
 
         try:
-            chat = int(chat)
+            chat_id = int(chat)  # Convert chat to integer
         except ValueError:
-            pass  # Keep chat as string if conversion fails
+            await query.answer("Invalid chat ID.", show_alert=True)
+            return
 
-        await index_files_to_db(int(lst_msg_id), chat, msg, bot)
+        await index_files_to_db(int(last_message_id), chat_id, msg, bot)
 
     except Exception as e:
         logger.error(f"Error in index_files: {e}")
         await query.message.reply(f"An error occurred: {e}")
+
+    # Example file saving operation; ensure media variable is defined.
+    try:
+        await save_file(media, query.message.chat.id, query.message.id)
+    except Exception as e:
+        logger.error(f"Failed to save file: {e}")
+
 
 @Client.on_message((filters.forwarded | (filters.regex(r"(https://)?(t\.me/|telegram\.me/|telegram\.dog/)(c/)?(\d+|[a-zA-Z_0-9]+)/(\d+)$")) & filters.text) & filters.private & filters.incoming)
 async def send_for_index(bot, message):
