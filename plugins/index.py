@@ -16,14 +16,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 lock = asyncio.Lock()
 
+import time
+
 @Client.on_callback_query(filters.regex(r'^index'))
 async def index_files(bot, query):
     try:
-        if query.data.startswith('index_cancel'):
-            temp.CANCEL = True
-            return await query.answer("Cancelling Indexing")
-
-        _, action, chat, lst_msg_id, from_user = query.data.split("#")
+        # Unpack data, where the start message ID is passed as part of the query data
+        _, action, chat, lst_msg_id, from_user, start_msg_id = query.data.split("#")
+        start_msg_id = int(start_msg_id)
 
         if action == 'reject':
             await query.message.delete()
@@ -40,6 +40,7 @@ async def index_files(bot, query):
         msg = query.message
         await query.answer('Processing...', show_alert=True)
 
+        # Notify user if they are not an admin
         if int(from_user) not in ADMINS:
             await bot.send_message(
                 int(from_user),
@@ -48,96 +49,49 @@ async def index_files(bot, query):
             )
 
         await msg.edit(
-            "Starting Indexing",
+            f"Starting Indexing from message ID {start_msg_id}",
             reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton('Cancel', callback_data='index_cancel')]])
         )
 
-        try:
-            chat = int(chat)
-        except ValueError:
-            pass  # Keep chat as string if conversion fails
+        # Variables for progress calculation
+        start_time = time.time()
+        processed_count = 0
+        total_messages = 0
 
-        await index_files_to_db(int(lst_msg_id), chat, msg, bot)
+        # Loop through all messages starting from `start_msg_id`
+        async for message in bot.iter_history(chat, offset_id=start_msg_id - 1):
+            if temp.CANCEL:
+                await msg.edit("Indexing cancelled.")
+                temp.CANCEL = False
+                return
+
+            await index_files_to_db(message.message_id, chat, msg, bot)
+            processed_count += 1
+            total_messages = message.message_id - start_msg_id + 1  # Calculate total messages from start to current
+
+            # Update progress every 10 messages
+            if processed_count % 10 == 0:
+                # Calculate elapsed time and estimated completion
+                elapsed_time = time.time() - start_time
+                msg_per_sec = processed_count / elapsed_time
+                msg_per_min = msg_per_sec * 60
+                msg_per_day = msg_per_min * 60 * 24
+                eta = (total_messages - processed_count) / msg_per_sec if msg_per_sec > 0 else 0
+
+                await msg.edit(
+                    f"Indexing Progress:\n"
+                    f"Current Message ID: {message.message_id}\n"
+                    f"Progress: {processed_count}/{total_messages} messages\n"
+                    f"Speed: {msg_per_min:.2f} msg/min, {msg_per_day:.2f} msg/day\n"
+                    f"ETA: {int(eta)} seconds"
+                )
+
+        await msg.edit(f"Indexing completed from message ID {start_msg_id} to the latest message.")
 
     except Exception as e:
         logger.error(f"Error in index_files: {e}")
         await query.message.reply(f"An error occurred: {e}")
 
-@Client.on_message((filters.forwarded | (filters.regex(r"(https://)?(t\.me/|telegram\.me/|telegram\.dog/)(c/)?(\d+|[a-zA-Z_0-9]+)/(\d+)$")) & filters.text) & filters.private & filters.incoming)
-async def send_for_index(bot, message):
-    try:
-        if message.text:
-            regex = re.compile(r"(https://)?(t\.me/|telegram\.me/|telegram\.dog/)(c/)?(\d+|[a-zA-Z_0-9]+)/(\d+)$")
-            match = regex.match(message.text)
-            if not match:
-                return await message.reply('Invalid link')
-
-            chat_id = match.group(4)
-            last_msg_id = int(match.group(5))
-
-            if chat_id.isnumeric():
-                chat_id = int("-100" + chat_id)  # Convert to Telegram private chat ID format
-
-        elif message.forward_from_chat and message.forward_from_chat.type == enums.ChatType.CHANNEL:
-            last_msg_id = message.forward_from_message_id
-            chat_id = message.forward_from_chat.username or message.forward_from_chat.id
-        else:
-            return
-
-        # Check if the bot can access the chat
-        try:
-            await bot.get_chat(chat_id)
-        except ChannelInvalid:
-            return await message.reply('This may be a private channel/group. Make me an admin to index the files.')
-        except (UsernameInvalid, UsernameNotModified):
-            return await message.reply('Invalid link specified.')
-        except Exception as e:
-            logger.error(f"Error fetching chat: {e}")
-            return await message.reply(f'Error: {e}')
-
-        try:
-            k = await bot.get_messages(chat_id, last_msg_id)
-        except Exception:
-            return await message.reply('Make sure I am an admin in the channel if the channel is private.')
-
-        if not k or k.empty:
-            return await message.reply('This may be a group, and I am not an admin of the group.')
-
-        if message.from_user.id in ADMINS:
-            buttons = [
-                [InlineKeyboardButton('Yes', callback_data=f'index#accept#{chat_id}#{last_msg_id}#{message.from_user.id}')],
-                [InlineKeyboardButton('Close', callback_data='close_data')],
-            ]
-            reply_markup = InlineKeyboardMarkup(buttons)
-            return await message.reply(
-                f'Do you want to index this channel/group?\n\nChat ID/Username: <code>{chat_id}</code>\nLast Message ID: <code>{last_msg_id}</code>',
-                reply_markup=reply_markup)
-
-        if isinstance(chat_id, int):
-            try:
-                link = (await bot.create_chat_invite_link(chat_id)).invite_link
-            except ChatAdminRequired:
-                return await message.reply('Make sure I am an admin and have permission to invite users.')
-        else:
-            link = f"@{message.forward_from_chat.username}"
-
-        buttons = [
-            [InlineKeyboardButton('Accept Index', callback_data=f'index#accept#{chat_id}#{last_msg_id}#{message.from_user.id}')],
-            [InlineKeyboardButton('Reject Index', callback_data=f'index#reject#{chat_id}#{message.id}#{message.from_user.id}')],
-        ]
-        reply_markup = InlineKeyboardMarkup(buttons)
-
-        await bot.send_message(
-            LOG_CHANNEL,
-            f'#IndexRequest\n\nBy: {message.from_user.mention} (<code>{message.from_user.id}</code>)\nChat ID/Username: <code>{chat_id}</code>\nLast Message ID: <code>{last_msg_id}</code>\nInvite Link: {link}',
-            reply_markup=reply_markup
-        )
-
-        await message.reply('Thank you for the contribution. Wait for my moderators to verify the files.')
-
-    except Exception as e:
-        logger.error(f"Error in send_for_index: {e}")
-        await message.reply(f"An error occurred: {e}")
 
 @Client.on_message(filters.command('setskip') & filters.user(ADMINS))
 async def set_skip_number(bot, message):

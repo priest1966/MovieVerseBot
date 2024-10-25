@@ -1,5 +1,5 @@
 from pyrogram import Client, filters
-import requests
+import aiohttp
 
 # Function to chunk the repository info into smaller parts
 def chunk_string(text, chunk_size):
@@ -8,12 +8,16 @@ def chunk_string(text, chunk_size):
 @Client.on_message(filters.command("allrepo"))
 async def all_repo_command(client, message):
     try:
-        # Check if there is a GitHub username after the /giverepo command
+        # Check if there is a GitHub username after the /allrepo command
         if len(message.command) > 1:
             github_username = message.command[1]
 
             # Fetch information about all repositories of the GitHub user
-            repo_info = get_all_repository_info(github_username)
+            repo_info = await get_all_repository_info(github_username)
+
+            if not repo_info:
+                await message.reply_text("No repositories found or unable to fetch data.")
+                return
 
             # Split repository info into smaller chunks
             chunked_repo_info = chunk_string(repo_info, 4000)  # Split into chunks of 4000 characters
@@ -25,24 +29,27 @@ async def all_repo_command(client, message):
             await message.reply_text("Please enter a GitHub username after the /allrepo command.")
     except Exception as e:
         await message.reply_text(f"An error occurred: {str(e)}")
-#######
 
-def get_all_repository_info(github_username):
+async def get_all_repository_info(github_username):
     # Set up the GitHub API URL for user repositories
     github_api_url = f"https://api.github.com/users/{github_username}/repos"
 
     # Perform the request to the GitHub API
-    response = requests.get(github_api_url)
-    data = response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.get(github_api_url) as response:
+            if response.status != 200:
+                return None
+            data = await response.json()
 
     # Extract relevant information from the response
-    repo_info = "\n\n".join([
-        f"Repository: {repo['full_name']}\n"
-        f"Description: {repo['description']}\n"
-        f"Stars: {repo['stargazers_count']}\n"
-        f"Forks: {repo['forks_count']}\n"
-        f"URL: {repo['html_url']}"
-        for repo in data
-    ])
+    repo_info = []
+    for repo in data:
+        repo_info.append(
+            f"Repository: {repo['full_name']}\n"
+            f"Description: {repo['description'] or 'No description'}\n"
+            f"Stars: {repo['stargazers_count']}\n"
+            f"Forks: {repo['forks_count']}\n"
+            f"URL: {repo['html_url']}\n"
+        )
 
-    return repo_info
+    return "\n\n".join(repo_info)
