@@ -23,7 +23,7 @@ async def save_group(bot, message):
         if message.chat.id in temp.BANNED_CHATS:
             # Inspired from a boat of a banana tree
             buttons = [[
-                InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url='https://telegram.me/weebs_Support')
+                InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url='https://t.me/movieverse_discussion_2')
             ]]
             reply_markup=InlineKeyboardMarkup(buttons)
             k = await message.reply(
@@ -38,8 +38,8 @@ async def save_group(bot, message):
             await bot.leave_chat(message.chat.id)
             return
         buttons = [[
-                    InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url='https://telegram.me/weebs_Support'),
-                    InlineKeyboardButton('ᴜᴘᴅᴀᴛᴇꜱ', url='https://telegram.me/codeflix_bots')
+                    InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url='https://t.me/movieverse_discussion_2'),
+                    InlineKeyboardButton('ᴜᴘᴅᴀᴛᴇꜱ', url='https://t.me/movieversepremium')
                  ]]
         reply_markup=InlineKeyboardMarkup(buttons)
         await message.reply_text(
@@ -66,7 +66,7 @@ async def save_group(bot, message):
                 )
                 
         if settings["auto_delete"]:
-            await asyncio.sleep(600)
+            await asyncio.sleep(120)
             await (temp.MELCOW['welcome']).delete()
 
 @Client.on_message(filters.command('leave') & filters.user(ADMINS))
@@ -80,7 +80,7 @@ async def leave_a_chat(bot, message):
         chat = chat
     try:
         buttons = [[
-            InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url='https://telegram.me/weebs_support')
+            InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url='https://t.me/movieverse_discussion_2')
         ]]
         reply_markup=InlineKeyboardMarkup(buttons)
         await bot.send_message(
@@ -119,7 +119,7 @@ async def disable_chat(bot, message):
     await message.reply('Chat Successfully Disabled')
     try:
         buttons = [[
-            InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url='https://telegram.me/weebs_support')
+            InlineKeyboardButton('sᴜᴘᴘᴏʀᴛ', url='https://t.me/movieverse_discussion_2')
         ]]
         reply_markup=InlineKeyboardMarkup(buttons)
         await bot.send_message(
@@ -177,65 +177,68 @@ async def gen_invite(bot, message):
         return await message.reply(f'Error {e}')
     await message.reply(f'Here is your Invite Link {link.invite_link}')
 
-@Client.on_message(filters.command('ban') & filters.user(ADMINS))@Client.on_message(filters.command('ban') & filters.user(ADMINS))
+@Client.on_message(filters.command('ban') & filters.user(ADMINS))
 async def ban_a_user(bot, message):
-    # Allow banning by replying to a message
-    if message.reply_to_message:
-        user_id = message.reply_to_message.from_user.id
-        reason = ' '.join(message.command[1:]) if len(message.command) > 1 else "No reason provided"
-    elif len(message.command) == 1:
-        return await message.reply('Give me a user id / username or reply to a message')
+    if len(message.command) == 1:
+        return await message.reply('Give me a user id / username')
+    r = message.text.split(None)
+    if len(r) > 2:
+        reason = message.text.split(None, 2)[2]
+        chat = message.text.split(None, 2)[1]
     else:
-        user_id = message.command[1]
-        reason = ' '.join(message.command[2:]) if len(message.command) > 2 else "No reason provided"
-    
+        chat = message.command[1]
+        reason = "No reason Provided"
     try:
-        user = await bot.get_users(user_id)
+        chat = int(chat)
+    except:
+        pass
+    try:
+        k = await bot.get_users(chat)
     except PeerIdInvalid:
-        return await message.reply("This is an invalid user, make sure I have met them before.")
+        return await message.reply("This is an invalid user, make sure ia have met him before.")
     except IndexError:
-        return await message.reply("This might be a channel, make sure it's a user.")
+        return await message.reply("This might be a channel, make sure its a user.")
     except Exception as e:
         return await message.reply(f'Error - {e}')
-    
-    if user.id in ADMINS:
-        return await message.reply("I can't ban an admin!")
-
-    ban_status = await db.get_ban_status(user.id)
-    if ban_status['is_banned']:
-        return await message.reply(f"{user.mention} is already banned\nReason: {ban_status['ban_reason']}")
-
-    await db.ban_user(user.id, reason)
-    temp.BANNED_USERS.append(user.id)
-    await message.reply(f"Successfully banned {user.mention}\nReason: {reason}")
+    else:
+        jar = await db.get_ban_status(k.id)
+        if jar['is_banned']:
+            return await message.reply(f"{k.mention} is already banned\nReason: {jar['ban_reason']}")
+        await db.ban_user(k.id, reason)
+        temp.BANNED_USERS.append(k.id)
+        await message.reply(f"Successfully banned {k.mention}")
 
 @Client.on_message(filters.command('unban') & filters.user(ADMINS))
 async def unban_a_user(bot, message):
-    # Allow unbanning by replying to a message
-    if message.reply_to_message:
-        user_id = message.reply_to_message.from_user.id
-    elif len(message.command) == 1:
-        return await message.reply('Give me a user id / username or reply to a message')
+    if len(message.command) == 1:
+        return await message.reply('Give me a user id / username')
+    r = message.text.split(None)
+    if len(r) > 2:
+        reason = message.text.split(None, 2)[2]
+        chat = message.text.split(None, 2)[1]
     else:
-        user_id = message.command[1]
-    
+        chat = message.command[1]
+        reason = "No reason Provided"
     try:
-        user = await bot.get_users(user_id)
+        chat = int(chat)
+    except:
+        pass
+    try:
+        k = await bot.get_users(chat)
     except PeerIdInvalid:
-        return await message.reply("This is an invalid user, make sure I have met them before.")
+        return await message.reply("This is an invalid user, make sure ia have met him before.")
     except IndexError:
-        return await message.reply("This might be a channel, make sure it's a user.")
+        return await message.reply("This might be a channel, make sure its a user.")
     except Exception as e:
         return await message.reply(f'Error - {e}')
+    else:
+        jar = await db.get_ban_status(k.id)
+        if not jar['is_banned']:
+            return await message.reply(f"{k.mention} is not yet banned.")
+        await db.remove_ban(k.id)
+        temp.BANNED_USERS.remove(k.id)
+        await message.reply(f"Successfully unbanned {k.mention}")
 
-    ban_status = await db.get_ban_status(user.id)
-    if not ban_status['is_banned']:
-        return await message.reply(f"{user.mention} is not banned.")
-
-    await db.remove_ban(user.id)
-    temp.BANNED_USERS.remove(user.id)
-    await message.reply(f"Successfully unbanned {user.mention}")
-    
 @Client.on_message(filters.command('users') & filters.user(ADMINS))
 async def list_users(bot, message):
     raju = await message.reply('Getting List Of Users')
