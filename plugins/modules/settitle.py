@@ -43,10 +43,6 @@ async def who_is(bot, message):
 START_MESSAGE = "Welcome {}, here are the rules for the group {}."
 PROTECT_CONTENT = True  # Set this flag based on your needs
 
-from pyrogram import Client, filters
-from Script import GREETINGS_TEXT  # Import GREETINGS_TEXT from script.py
-
-
 @Client.on_message(filters.command("rules") & filters.group)
 async def r_message(client, message):
     protect = "/pbatch" if PROTECT_CONTENT else "batch"
