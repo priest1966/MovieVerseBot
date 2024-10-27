@@ -442,6 +442,29 @@ exᴀᴍᴘʟᴇ: /mongo ʏᴏᴜʀ_ᴍᴏɴɢᴏᴅʙ_ᴜʀʟ
 • ꜰʀᴇᴇ ꜱᴛᴏʀᴀɢᴇ : <code>{}</code>
 </b>"""
 
+# script.py
+
+    GREETINGS_TEXT = """
+**Greeting Commands and Usage:**
+
+/setwelcome <text>: Set a new welcome message. Supports placeholders like {first}, {last}, {fullname}, {username}, {mention}, {id}, {chatname}, {rules}, {preview}, {nonotif}, {protect}, and {mediaspoiler}.
+
+/resetwelcome: Reset the welcome message to the default one.
+
+/setgoodbye <text>: Set a new goodbye message, with similar support for markdown and placeholders as the welcome message.
+
+/resetgoodbye: Reset the goodbye message to the default one.
+
+/welcome <yes/no/on/off>: Enable or disable welcome messages.
+
+/goodbye <yes/no/on/off>: Enable or disable goodbye messages.
+
+/cleanwelcome <yes/no/on/off>: Delete old welcome messages after 5 minutes, or when a new person joins.
+
+These commands allow you to manage greeting messages for new members joining or leaving the chat.
+"""
+
+
     LOG_TEXT_G = """<b>#ɴᴇᴡ_ɢʀᴏᴜᴩ
 
 ◉ ɢʀᴏᴜᴩ: {}(<code>{}</code>)
