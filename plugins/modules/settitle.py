@@ -46,10 +46,6 @@ PROTECT_CONTENT = True  # Set this flag based on your needs
 from pyrogram import Client, filters
 from Script import GREETINGS_TEXT  # Import GREETINGS_TEXT from script.py
 
-@Client.on_message(filters.group & filters.command("greetings"))
-def greetings_command(client, message):
-    # Respond with the greetings text from script.py
-    message.reply_text(GREETINGS_TEXT, disable_web_page_preview=True)
 
 @Client.on_message(filters.command("rules") & filters.group)
 async def r_message(client, message):
