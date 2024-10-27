@@ -48,7 +48,10 @@ def handle_welcome_goodbye(client, message):
     command = message.command[0].lower()
 
     if command in ["welcome", "goodbye", "cleanwelcome"]:
-        action = message.command[1].lower() if len(message.command) > 1 else None
+        if len(message.command) < 2:
+            message.reply_text("Please specify 'yes', 'no', 'on', or 'off' to enable or disable.")
+            return
+        action = message.command[1].lower()
         if action in ["yes", "on"]:
             settings[f"{command}_enabled"] = True
             message.reply_text(f"{command.capitalize()} messages enabled.")
@@ -56,15 +59,21 @@ def handle_welcome_goodbye(client, message):
             settings[f"{command}_enabled"] = False
             message.reply_text(f"{command.capitalize()} messages disabled.")
         else:
-            message.reply_text("Please specify 'yes', 'no', 'on', or 'off'.")
+            message.reply_text("Invalid option. Use 'yes', 'no', 'on', or 'off'.")
         return
 
     elif command == "setwelcome":
-        settings["welcome_message"] = message.text.split(" ", 1)[1] if len(message.command) > 1 else "Welcome to the group!"
+        if len(message.command) < 2:
+            message.reply_text("Please provide a welcome message text after the command.")
+            return
+        settings["welcome_message"] = message.text.split(" ", 1)[1]
         message.reply_text("New welcome message set!")
 
     elif command == "setgoodbye":
-        settings["goodbye_message"] = message.text.split(" ", 1)[1] if len(message.command) > 1 else "Goodbye!"
+        if len(message.command) < 2:
+            message.reply_text("Please provide a goodbye message text after the command.")
+            return
+        settings["goodbye_message"] = message.text.split(" ", 1)[1]
         message.reply_text("New goodbye message set!")
 
     elif command == "resetwelcome":
@@ -74,6 +83,8 @@ def handle_welcome_goodbye(client, message):
     elif command == "resetgoodbye":
         settings["goodbye_message"] = "Goodbye, {fullname}!"
         message.reply_text("Goodbye message reset to default.")
+    else:
+        message.reply_text("Unknown command. Please use a valid command.")
 
 
 @Client.on_message(filters.group & filters.new_chat_members)
