@@ -961,7 +961,7 @@ aᴠᴀɪʟᴀʙʟᴇ ᴛᴏ aᴅᴍɪɴs & mᴏᴅᴇʀᴀᴛᴏʀs.
 Iᴅ : <code>{}</code>
 Nᴀᴍᴇ : {}
 
-Mᴇꜱꜱᴀɢᴇ : <b>{}</b>"""
+Mᴇꜱꜱᴀɢᴇ : <code>{}</code>"""
  
    # PLEASE DO NOT REMOVE ANY CREDITS ❤️‍🩹
     
