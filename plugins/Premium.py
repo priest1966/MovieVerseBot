@@ -82,11 +82,6 @@ async def get_premium(client, message):
     else:
         await message.reply_text("ᴜꜱᴀɢᴇ : /get_premium user_id")
 
-from pyrogram import Client, filters
-import time
-from datetime import datetime, timedelta
-from MovieVerseBot.info import ADMINS  # Ensure ADMINS list is correct
-from MovieVerseBot.db import update_user  # Make sure your database function works correctly
 
 # Function to convert time string (e.g., "1 day") to seconds
 async def get_seconds(time_str):
