@@ -82,33 +82,72 @@ async def get_premium(client, message):
     else:
         await message.reply_text("ᴜꜱᴀɢᴇ : /get_premium user_id")
 
+from pyrogram import Client, filters
+import time
+from datetime import datetime, timedelta
+from MovieVerseBot.info import ADMINS  # Ensure ADMINS list is correct
+from MovieVerseBot.db import update_user  # Make sure your database function works correctly
+
+# Function to convert time string (e.g., "1 day") to seconds
+async def get_seconds(time_str):
+    units = {
+        "day": 86400,
+        "hour": 3600,
+        "minute": 60,
+        "month": 2592000,  # approximate month in seconds
+        "year": 31536000   # approximate year in seconds
+    }
+    try:
+        value, unit = time_str.split()
+        value = int(value)
+        return value * units[unit.lower()]
+    except (ValueError, KeyError):
+        print("Error parsing time string. Ensure it is in '1 day', '2 months', etc. format.")
+        return 0  # Return 0 if parsing fails
+
+# Command handler for /add_premium
 @Client.on_message(filters.command("add_premium") & filters.user(ADMINS))
 async def give_premium_cmd_handler(client, message):
+    print("Received /add_premium command.")
+
+    # Check if correct number of arguments are provided
     if len(message.command) == 4:
-        time_zone = datetime.datetime.now(pytz.timezone("Asia/Kolkata"))
-        current_time = time_zone.strftime("%d-%m-%Y\nᴊᴏɪɴɪɴɢ ᴛɪᴍᴇ : %I:%M:%S %p") 
-        user_id = int(message.command[1])  # Convert the user_id to integer
-        user = await client.get_users(user_id)
-        time = message.command[2]+" "+message.command[3]
-        seconds = await get_seconds(time)
-        if seconds > 0:
-            expiry_time = datetime.datetime.now() + datetime.timedelta(seconds=seconds)
-            user_data = {"id": user_id, "expiry_time": expiry_time}  # Using "id" instead of "user_id"  
-            await db.update_user(user_data)  # Use the update_user method to update or insert user data
-            data = await db.get_user(user_id)
-            expiry = data.get("expiry_time")   
-            expiry_str_in_ist = expiry.astimezone(pytz.timezone("Asia/Kolkata")).strftime("%d-%m-%Y\nᴇxᴘɪʀʏ ᴛɪᴍᴇ : %I:%M:%S %p")         
-            await message.reply_text(f"ᴘʀᴇᴍɪᴜᴍ ᴀᴅᴅᴇᴅ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ\n\nᴜꜱᴇʀ : {user.mention}\nᴜꜱᴇʀ ɪᴅ : <code>{user_id}</code>\nᴘʀᴇᴍɪᴜᴍ ᴀᴄᴄᴇꜱꜱ : <code>{time}</code>\n\nᴊᴏɪɴɪɴɢ ᴅᴀᴛᴇ : {current_time}\n\nᴇxᴘɪʀʏ ᴅᴀᴛᴇ : {expiry_str_in_ist}", disable_web_page_preview=True)
-            await client.send_message(
-                chat_id=user_id,
-                text=f"ʜᴇʏ {user.mention},\nᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ᴘᴜʀᴄʜᴀꜱɪɴɢ ᴘʀᴇᴍɪᴜᴍ.\nᴇɴᴊᴏʏ !!\n\nᴘʀᴇᴍɪᴜᴍ ᴀᴄᴄᴇꜱꜱ : <code>{time}</code>\nᴊᴏɪɴɪɴɢ ᴅᴀᴛᴇ : {current_time}\n\nᴇxᴘɪʀʏ ᴅᴀᴛᴇ : {expiry_str_in_ist}", disable_web_page_preview=True              
-            )    
-            await client.send_message(PREMIUM_LOGS, text=f"#Added_Premium\n\nᴜꜱᴇʀ : {user.mention}\nᴜꜱᴇʀ ɪᴅ : <code>{user_id}</code>\nᴘʀᴇᴍɪᴜᴍ ᴀᴄᴄᴇꜱꜱ : <code>{time}</code>\n\nᴊᴏɪɴɪɴɢ ᴅᴀᴛᴇ : {current_time}\n\nᴇxᴘɪʀʏ ᴅᴀᴛᴇ : {expiry_str_in_ist}", disable_web_page_preview=True)
-                    
-        else:
-            await message.reply_text("Invalid time format. Please use '1 day for days', '1 hour for hours', or '1 min for minutes', or '1 month for months' or '1 year for year'")
+        print("Correct number of arguments received.")
+        try:
+            user_id = int(message.command[1])
+            time_str = f"{message.command[2]} {message.command[3]}"
+            print(f"Parsed user_id: {user_id}, time_str: {time_str}")
+            
+            # Convert time string to seconds
+            seconds = await get_seconds(time_str)
+            print(f"Calculated seconds: {seconds}")
+
+            if seconds > 0:
+                # Calculate expiry time based on current time and provided duration
+                expiry_time = datetime.now() + timedelta(seconds=seconds)
+                print(f"Expiry time set to: {expiry_time}")
+
+                # Prepare user data for database update
+                user_data = {"id": user_id, "expiry_time": expiry_time}
+                
+                # Update user in the database
+                try:
+                    await update_user(user_data)
+                    await message.reply_text(f"User {user_id} has been added with premium access until {expiry_time}.")
+                    print(f"User {user_id} successfully added to database with expiry {expiry_time}.")
+                except Exception as e:
+                    await message.reply_text("Failed to add user to the database.")
+                    print(f"Database update error: {e}")
+            else:
+                await message.reply_text("Invalid time format. Please use '1 day', '1 hour', etc.")
+                print("Time conversion returned 0, indicating an invalid format.")
+
+        except ValueError:
+            await message.reply_text("Invalid user ID format.")
+            print("User ID could not be converted to integer.")
     else:
-        await message.reply_text("Usage : /add_premium user_id time (e.g., '1 day for days', '1 hour for hours', or '1 min for minutes', or '1 month for months' or '1 year for year')")
+        await message.reply_text("Usage: /add_premium user_id time (e.g., '1 day')")
+        print("Incorrect number of arguments supplied to command.")
 
 @Client.on_message(filters.command("premium_users") & filters.user(ADMINS))
 async def premium_user(client, message):
