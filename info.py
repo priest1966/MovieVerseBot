@@ -28,7 +28,7 @@ SESSION = environ.get('SESSION', 'MovieVerse')
 API_ID = int(environ.get('API_ID', '900652'))
 API_HASH = environ.get('API_HASH', 'a4183efcd370bf03011df1ba8772b1c9')
 OWNER_ID = environ.get('OWNER_ID', '330029937')
-BOT_TOKEN = environ.get('BOT_TOKEN', "7071771071:AAElRr8o5wsqFmC3X6vujOt7A7BgbUaoMdk")
+BOT_TOKEN = environ.get('BOT_TOKEN', "7297090199:AAFL0okTc2pzKCOiZ3H7zBwH__Dc2f8EQro")
 
 # Bot settings
 CACHE_TIME = int(environ.get('CACHE_TIME', 300))
